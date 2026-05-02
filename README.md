@@ -14,3 +14,5 @@ you'll be creating yourself during the tutorial and the `jenkins/scripts` subdir
 contains a shell script with commands that are executed when Jenkins processes
 the "Deliver" stage of your Pipeline.
 Prueba de CI
+Nombre: William Vásquez
+Carnet: 09000913357
