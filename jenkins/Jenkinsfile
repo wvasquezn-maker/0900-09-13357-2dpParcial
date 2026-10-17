@@ -1,28 +1,52 @@
+
 pipeline {
     agent any
-    options {
-        skipStagesAfterUnstable()
+
+    tools {
+        jdk 'JDK21'
+        maven 'MAVEN_3_9_16'
     }
+
     stages {
-        stage('Build') {
+        stage('Clonar repositorio') {
             steps {
-                sh 'mvn -B -DskipTests clean package'
+                checkout scm
             }
         }
-        stage('Test') {
+
+        stage('Compilar') {
             steps {
-                sh 'mvn test'
+                bat 'mvn -B -DskipTests clean package'
+            }
+        }
+
+        stage('Pruebas JUnit') {
+            steps {
+                bat 'mvn -B test'
             }
             post {
                 always {
-                    junit 'target/surefire-reports/*.xml'
+                    junit allowEmptyResults: true,
+                          testResults: 'target/surefire-reports/*.xml'
                 }
             }
         }
-        stage('Deliver') { 
+
+        stage('Analisis SonarQube') {
             steps {
-                sh './jenkins/scripts/deliver.sh' 
+                withSonarQubeEnv('SonarQubeLocal') {
+                    bat 'mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=laboratorio-jenkins-maven'
+                }
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Compilacion, pruebas y analisis completados.'
+        }
+        failure {
+            echo 'La ejecucion fallo. Revisar Console Output.'
         }
     }
 }
